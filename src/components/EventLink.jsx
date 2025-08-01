@@ -1,4 +1,4 @@
-import { Button, Typography } from 'antd';
+import { Button, Input, Typography } from 'antd';
 
 export default function EventLink({ eventId }) {
   const link = `https://t.me/gather_team_bot?start=event_${eventId}`;
