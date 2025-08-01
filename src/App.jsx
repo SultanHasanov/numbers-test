@@ -9,17 +9,26 @@ export default function App() {
   const [user, setUser] = useState(null);
 
   useEffect(() => {
-    const tg = window.Telegram.WebApp;
-    tg.ready();
-    const uid = tg.initDataUnsafe.user;
-    setUser({ id: uid?.id, name: uid?.first_name });
+  const tg = window.Telegram?.WebApp;
 
-    const hash = tg.initDataUnsafe.start_param;
-    if (hash?.startsWith('event_')) {
-      const id = hash.split('_')[1];
-      setJoinId(id);
-    }
-  }, []);
+  if (!tg) {
+    alert('Пожалуйста, откройте приложение через Telegram');
+    return;
+  }
+
+  tg.ready();
+  const user = tg.initDataUnsafe?.user;
+  if (user) {
+    setUser({ id: user.id, name: user.first_name });
+  }
+
+  const hash = tg.initDataUnsafe?.start_param;
+  if (hash?.startsWith('event_')) {
+    const id = hash.split('_')[1];
+    setJoinId(id);
+  }
+}, []);
+
 
   if (joinId && user) return <JoinEvent eventId={joinId} user={user} />;
   if (eventId) return <EventLink eventId={eventId} />;
