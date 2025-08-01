@@ -208,14 +208,23 @@ const CreateEvent = ({ navigateTo }) => {
   const onFinish = async (values) => {
     setLoading(true);
     try {
-      // Преобразуем дату в ISO строку
+      // Получаем данные создателя из Telegram WebApp
+      const telegramUser = tg?.initDataUnsafe?.user;
+      const creatorFirstName = telegramUser?.first_name || 'Пользователь';
+      const creatorLastName = telegramUser?.last_name || '';
+      const creatorFullName = `${creatorFirstName} ${creatorLastName}`.trim();
+      
       const eventData = {
         ...values,
         date: values.date ? values.date.toISOString() : new Date().toISOString(),
         createdAt: new Date().toISOString(),
         participants: [],
-        creatorId: tg?.initDataUnsafe?.user?.id || 'demo_user',
-        creatorName: tg?.initDataUnsafe?.user?.first_name || 'Пользователь',
+        creatorId: telegramUser?.id || 'demo_user',
+        creatorName: creatorFullName,
+        creatorFirstName: creatorFirstName,
+        creatorLastName: creatorLastName,
+        creatorPhotoUrl: telegramUser?.photo_url || null,
+        creatorUsername: telegramUser?.username || null,
         isActive: true
       };
 
@@ -369,8 +378,6 @@ const EventPage = ({ eventId, navigateTo }) => {
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
-  const [userName, setUserName] = useState('');
-  const [showJoinModal, setShowJoinModal] = useState(false);
 
   const fetchEvent = async () => {
     try {
@@ -411,17 +418,23 @@ const EventPage = ({ eventId, navigateTo }) => {
   };
 
   const joinEvent = async () => {
-    if (!userName.trim()) {
-      message.error('Введите ваше имя');
-      return;
-    }
+    // Получаем данные пользователя из Telegram WebApp
+    const telegramUser = tg?.initDataUnsafe?.user;
+    const userId = telegramUser?.id || `user_${Date.now()}`;
+    const userFirstName = telegramUser?.first_name || 'Пользователь';
+    const userLastName = telegramUser?.last_name || '';
+    const fullName = `${userFirstName} ${userLastName}`.trim();
+    const userPhoto = telegramUser?.photo_url || null;
 
     setJoining(true);
     try {
-      const userId = tg?.initDataUnsafe?.user?.id || `user_${Date.now()}`;
       const newParticipant = {
         id: userId,
-        name: userName.trim(),
+        name: fullName,
+        firstName: userFirstName,
+        lastName: userLastName,
+        photoUrl: userPhoto,
+        username: telegramUser?.username || null,
         joinedAt: new Date().toISOString()
       };
 
@@ -445,7 +458,6 @@ const EventPage = ({ eventId, navigateTo }) => {
       if (response.ok) {
         setEvent(updatedEvent);
         setShowJoinModal(false);
-        setUserName('');
         
         message.success('Вы присоединились к событию!');
         
@@ -464,16 +476,20 @@ const EventPage = ({ eventId, navigateTo }) => {
   };
 
   const shareEvent = () => {
-    const url = window.location.href;
+    // Создаем ссылку которая ведет в бота с параметром start
+    const botUsername = 'gather_team_bot'; // Замените на имя вашего бота
+    const startParam = `event_${eventId}`;
+    const telegramUrl = `https://t.me/${botUsername}?start=${startParam}`;
+    
     if (navigator.share) {
       navigator.share({
         title: event.title,
         text: `Присоединяйся к событию: ${event.title}`,
-        url: url
+        url: telegramUrl
       });
     } else {
-      navigator.clipboard.writeText(url);
-      message.success('Ссылка скопирована!');
+      navigator.clipboard.writeText(telegramUrl);
+      message.success('Ссылка на бота скопирована!');
     }
   };
 
@@ -547,6 +563,31 @@ const EventPage = ({ eventId, navigateTo }) => {
             {event.title}
           </Title>
           
+          {/* Информация о создателе */}
+          <div style={{ 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            marginBottom: '16px',
+            padding: '8px',
+            background: 'rgba(24, 144, 255, 0.1)',
+            borderRadius: '12px'
+          }}>
+            <Avatar 
+              size="small"
+              src={event.creatorPhotoUrl}
+              style={{ 
+                backgroundColor: '#1890ff',
+                marginRight: '8px'
+              }}
+            >
+              {event.creatorFirstName?.[0] || 'У'}
+            </Avatar>
+            <Text type="secondary" style={{ fontSize: '12px' }}>
+              Создал: <strong>{event.creatorName}</strong>
+            </Text>
+          </div>
+          
           <Space direction="vertical" size="small" style={{ width: '100%' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
               <CalendarOutlined style={{ marginRight: '8px', color: '#1890ff' }} />
@@ -600,13 +641,23 @@ const EventPage = ({ eventId, navigateTo }) => {
                   <List.Item.Meta
                     avatar={
                       <Avatar 
+                        src={participant.photoUrl}
                         style={{ backgroundColor: '#1890ff' }}
                         size="small"
                       >
-                        {index + 1}
+                        {participant.firstName?.[0] || participant.name?.[0] || index + 1}
                       </Avatar>
                     }
-                    title={participant.name}
+                    title={
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span>{participant.name}</span>
+                        {participant.username && (
+                          <Text type="secondary" style={{ marginLeft: '8px', fontSize: '12px' }}>
+                            @{participant.username}
+                          </Text>
+                        )}
+                      </div>
+                    }
                     description={`Присоединился ${formatJoinDate(participant.joinedAt)}`}
                   />
                 </List.Item>
@@ -623,7 +674,8 @@ const EventPage = ({ eventId, navigateTo }) => {
               type="primary"
               size="large"
               icon={<UserOutlined />}
-              onClick={() => setShowJoinModal(true)}
+              onClick={joinEvent}
+              loading={joining}
               style={{
                 width: '100%',
                 height: '50px',
@@ -678,26 +730,6 @@ const EventPage = ({ eventId, navigateTo }) => {
           </Button>
         </Space>
       </Card>
-
-      <Modal
-        title="Присоединиться к событию"
-        open={showJoinModal}
-        onOk={joinEvent}
-        onCancel={() => setShowJoinModal(false)}
-        confirmLoading={joining}
-        okText="Присоединиться"
-        cancelText="Отмена"
-      >
-        <div style={{ marginTop: '16px' }}>
-          <Text>Ваше имя:</Text>
-          <Input
-            value={userName}
-            onChange={(e) => setUserName(e.target.value)}
-            placeholder="Введите ваше имя"
-            style={{ marginTop: '8px', borderRadius: '8px' }}
-          />
-        </div>
-      </Modal>
     </div>
   );
 };
