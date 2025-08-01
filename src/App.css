@@ -1,131 +1,13 @@
-* {
-  box-sizing: border-box;
+body {
   margin: 0;
-  padding: 0;
-  font-family: 'Arial', sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  background: #f0f2f5;
 }
-
-.app {
-  max-width: 800px;
-  margin: 0 auto;
-  padding: 20px;
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-h1 {
-  color: #2c3e50;
-  margin-bottom: 20px;
-  text-align: center;
-}
-
-.form-container, .result-container {
-  width: 100%;
-  background: #f9f9f9;
-  padding: 30px;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.form-group {
-  margin-bottom: 20px;
-}
-
-label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: bold;
-  color: #34495e;
-}
-
-input[type="text"], select {
-  width: 100%;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 16px;
-}
-
-input[type="checkbox"] {
-  margin-right: 10px;
-}
-
-.button-group {
-  text-align: center;
-  margin-top: 30px;
-}
-
-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  transition: background-color 0.3s;
-}
-
-button:hover {
-  background-color: #2980b9;
-}
-
-button:disabled {
-  background-color: #95a5a6;
-  cursor: not-allowed;
-}
-
-.error {
-  color: #e74c3c;
-  background-color: #fadbd8;
-  padding: 10px;
-  border-radius: 4px;
-  margin-top: 20px;
-  text-align: center;
-}
-
-.result-info {
-  background: #eaf2f8;
-  padding: 15px;
-  border-radius: 5px;
-  margin-bottom: 20px;
-}
-
-.result-info p {
-  margin-bottom: 8px;
-}
-
-.fact-box {
-  background: white;
-  padding: 20px;
-  border-radius: 5px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  margin-bottom: 20px;
-}
-
-.fact-box h2 {
-  color: #3498db;
-  margin-bottom: 10px;
-}
-
-.back-button {
-  background-color: #2ecc71;
+.ant-btn {
   width: 100%;
 }
-
-.back-button:hover {
-  background-color: #27ae60;
-}
-
-@media (max-width: 600px) {
-  .app {
-    padding: 10px;
-  }
-  
-  .form-container, .result-container {
-    padding: 20px;
-  }
+.container {
+  max-width: 500px;
+  margin: auto;
+  padding: 1rem;
 }
