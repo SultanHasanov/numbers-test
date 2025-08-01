@@ -1,20 +1,27 @@
-import { Routes, Route } from 'react-router-dom';
-import { ConfigProvider } from 'antd';
-import Home from './pages/Home';
-import CreateEvent from './pages/CreateEvent';
-import EventPage from './pages/EventPage';
-import ruRU from 'antd/locale/ru_RU';
+import { useState, useEffect } from 'react';
+import CreateEvent from './components/CreateEvent';
+import EventLink from './components/EventLink';
+import JoinEvent from './components/JoinEvent';
 
-function App() {
-  return (
-    <ConfigProvider locale={ruRU}>
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/create" element={<CreateEvent />} />
-        <Route path="/event/:eventId" element={<EventPage />} />
-      </Routes>
-    </ConfigProvider>
-  );
+export default function App() {
+  const [eventId, setEventId] = useState(null);
+  const [joinId, setJoinId] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+    const uid = tg.initDataUnsafe.user;
+    setUser({ id: uid?.id, name: uid?.first_name });
+
+    const hash = tg.initDataUnsafe.start_param;
+    if (hash?.startsWith('event_')) {
+      const id = hash.split('_')[1];
+      setJoinId(id);
+    }
+  }, []);
+
+  if (joinId && user) return <JoinEvent eventId={joinId} user={user} />;
+  if (eventId) return <EventLink eventId={eventId} />;
+  return <CreateEvent setEventId={setEventId} />;
 }
-
-export default App;
